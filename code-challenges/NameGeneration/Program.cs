@@ -42,6 +42,18 @@ namespace NameGeneration
 {
     class Program
     {
+
+        static List<string> GenerateNames(int amount)
+        {
+            List<string> names = [];
+
+            for (int i = 0; i < amount; i++)
+            {
+                names.Add("Name " + (i + 1));
+            }
+
+            return names;
+        }
         static void Main(string[] args)
         {
             string rawInput = Console.ReadLine() ?? "0";
@@ -52,6 +64,11 @@ namespace NameGeneration
                 return;
             }
 
+            List<string> generatedNamed = GenerateNames(namesAmount);
+            foreach (string name in generatedNamed)
+            {
+                Console.WriteLine(name);
+            }
         }
     }
 }
