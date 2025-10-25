@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Data;
+using System.Collections.Generic;
+using System.Security.Cryptography;
 
 /*
 https://open.kattis.com/problems/namegeneration
@@ -42,33 +45,146 @@ namespace NameGeneration
 {
     class Program
     {
-
-        static List<string> GenerateNames(int amount)
-        {
-            List<string> names = [];
-
-            for (int i = 0; i < amount; i++)
-            {
-                names.Add("Name " + (i + 1));
-            }
-
-            return names;
-        }
+        /*
+            Index 0-4: vowels
+            Index 4-end: consonants
+        */
+        static readonly int MIN_NAME_LENGTH = 3;
+        static readonly int MAX_NAME_LENGTH = 20;
+        static readonly string LETTERS = "aeioubcdfghjklmnpqrstvwxyz";
+        static readonly int CONSONANTS_START_INDEX = 5;
+        static readonly int MAX_CONSECUTIVE_SPEECH_SOUNDS = 2;
+        static readonly int MAX_NAMES_AMOUNT = 30000;
         static void Main(string[] args)
         {
             string rawInput = Console.ReadLine() ?? "0";
+            if (rawInput == "")
+                rawInput = "0";
             int namesAmount = int.Parse(rawInput);
             if (namesAmount < 1)
             {
                 Console.WriteLine("No names to create. Exiting...");
                 return;
             }
+            if (namesAmount > MAX_NAMES_AMOUNT)
+            {
+                Console.WriteLine(string.Format("Max amount of names is {0:N0}. Exiting...", MAX_NAMES_AMOUNT));
+                return;
+            }
 
-            List<string> generatedNamed = GenerateNames(namesAmount);
+            HashSet<string> generatedNamed = GenerateNames(namesAmount);
             foreach (string name in generatedNamed)
             {
                 Console.WriteLine(name);
             }
+        }
+
+        static HashSet<string> GenerateNames(int nameAmount)
+        {
+            HashSet<string> names = [];
+
+            for (int i = 0; i < nameAmount; i++)
+            {
+                int nameLength = RandomNumberGenerator.GetInt32(MIN_NAME_LENGTH, MAX_NAME_LENGTH + 1);
+                string name = "";
+                SpeechSoundCounter counter = new();
+
+                for (int j = 0; j < nameLength; j++)
+                {
+                    char letter = GetRandomLetter(counter);
+                    name += letter;
+                }
+
+                if (!names.Contains(name))
+                {
+                    names.Add(name);
+                }
+                else
+                {
+                    i -= 1;
+                }
+            }
+
+            return names;
+        }
+        static char GetRandomLetter(SpeechSoundCounter counter)
+        {
+            char letter = LETTERS[RandomNumberGenerator.GetInt32(LETTERS.Length)];
+            SpeechSound? lastSpeechSound = counter.GetLastSpeechSound();
+
+            if (LETTERS[..5].Contains(letter))
+            /* letter is a vowel */
+            {
+                if (lastSpeechSound == SpeechSound.Vowel)
+                {
+                    counter.IncreaseCount();
+                    if (counter.GetCount() >= MAX_CONSECUTIVE_SPEECH_SOUNDS)
+                    {
+                        counter.SetLastSpeechSound(SpeechSound.Consonant);
+                        counter.ResetCount();
+                        return LETTERS[RandomNumberGenerator.GetInt32(CONSONANTS_START_INDEX, LETTERS.Length)];
+                    }
+
+                    counter.SetLastSpeechSound(SpeechSound.Vowel);
+                    return LETTERS[RandomNumberGenerator.GetInt32(CONSONANTS_START_INDEX)];
+                }
+                counter.SetLastSpeechSound(SpeechSound.Vowel);
+            }
+            else
+            /* letter is a consonant */
+            {
+                if (lastSpeechSound == SpeechSound.Consonant)
+                {
+                    counter.IncreaseCount();
+                    if (counter.GetCount() >= MAX_CONSECUTIVE_SPEECH_SOUNDS)
+                    {
+                        counter.SetLastSpeechSound(SpeechSound.Vowel);
+                        counter.ResetCount();
+                        return LETTERS[RandomNumberGenerator.GetInt32(CONSONANTS_START_INDEX)];
+                    }
+
+                    counter.SetLastSpeechSound(SpeechSound.Consonant);
+                    return LETTERS[RandomNumberGenerator.GetInt32(CONSONANTS_START_INDEX, LETTERS.Length)];
+                }
+                counter.SetLastSpeechSound(SpeechSound.Consonant);
+            }
+            return letter;
+        }
+
+        class SpeechSoundCounter
+        {
+            private int _count = 0;
+            private SpeechSound? _lastSpeechSound = null;
+
+            public void IncreaseCount()
+            {
+                _count += 1;
+            }
+
+            public void ResetCount()
+            {
+                _count = 0;
+            }
+            public int GetCount()
+            {
+                return _count;
+            }
+
+            public void SetLastSpeechSound(SpeechSound speechSound)
+            {
+                _lastSpeechSound = speechSound;
+            }
+
+            public SpeechSound? GetLastSpeechSound()
+            {
+                return _lastSpeechSound;
+            }
+        }
+        
+        enum SpeechSound
+        {
+            Vowel,
+            Consonant,
         }
     }
 }
