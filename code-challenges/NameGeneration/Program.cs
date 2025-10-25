@@ -87,28 +87,19 @@ namespace NameGeneration
             {
                 int nameLength = RandomNumberGenerator.GetInt32(MIN_NAME_LENGTH, MAX_NAME_LENGTH + 1);
                 string name = "";
-                SpeechSoundCounter counter = new();
-
+                
                 for (int j = 0; j < nameLength; j++)
-                {
-                    char letter = GetRandomLetter(counter);
-                    name += letter;
-                }
+                    name += GetRandomLetter();
 
-                if (!names.Contains(name))
-                {
-                    names.Add(name);
-                }
-                else
-                {
+                if (!names.Add(name))
                     i -= 1;
-                }
             }
 
             return names;
         }
-        static char GetRandomLetter(SpeechSoundCounter counter)
+        static char GetRandomLetter()
         {
+            SpeechSoundCounter counter = new();
             char letter = LETTERS[RandomNumberGenerator.GetInt32(LETTERS.Length)];
             SpeechSound? lastSpeechSound = counter.GetLastSpeechSound();
 
