@@ -87,59 +87,36 @@ namespace NameGeneration
             {
                 int nameLength = RandomNumberGenerator.GetInt32(MIN_NAME_LENGTH, MAX_NAME_LENGTH + 1);
                 string name = "";
+                SpeechSoundCounter counter = new();
                 
                 for (int j = 0; j < nameLength; j++)
-                    name += GetRandomLetter();
+                    name += GetRandomLetter(counter);
 
                 if (!names.Add(name))
-                    i -= 1;
+                    i--;
             }
 
             return names;
         }
-        static char GetRandomLetter()
+        static char GetRandomLetter(SpeechSoundCounter counter)
         {
-            SpeechSoundCounter counter = new();
             char letter = LETTERS[RandomNumberGenerator.GetInt32(LETTERS.Length)];
-            SpeechSound? lastSpeechSound = counter.GetLastSpeechSound();
 
             if (LETTERS[..5].Contains(letter))
             /* letter is a vowel */
             {
-                if (lastSpeechSound == SpeechSound.Vowel)
+                if (counter.Add(SpeechSound.Vowel))
                 {
-                    counter.IncreaseCount();
-                    if (counter.GetCount() >= MAX_CONSECUTIVE_SPEECH_SOUNDS)
-                    {
-                        counter.SetLastSpeechSound(SpeechSound.Consonant);
-                        counter.ResetCount();
-                        return LETTERS[RandomNumberGenerator.GetInt32(CONSONANTS_START_INDEX, LETTERS.Length)];
-                    }
-
-                    counter.SetLastSpeechSound(SpeechSound.Vowel);
-                    return LETTERS[RandomNumberGenerator.GetInt32(CONSONANTS_START_INDEX)];
+                    return letter;
                 }
-                counter.SetLastSpeechSound(SpeechSound.Vowel);
+                return LETTERS[RandomNumberGenerator.GetInt32(CONSONANTS_START_INDEX, LETTERS.Length)];
             }
-            else
             /* letter is a consonant */
+            if (counter.Add(SpeechSound.Consonant))
             {
-                if (lastSpeechSound == SpeechSound.Consonant)
-                {
-                    counter.IncreaseCount();
-                    if (counter.GetCount() >= MAX_CONSECUTIVE_SPEECH_SOUNDS)
-                    {
-                        counter.SetLastSpeechSound(SpeechSound.Vowel);
-                        counter.ResetCount();
-                        return LETTERS[RandomNumberGenerator.GetInt32(CONSONANTS_START_INDEX)];
-                    }
-
-                    counter.SetLastSpeechSound(SpeechSound.Consonant);
-                    return LETTERS[RandomNumberGenerator.GetInt32(CONSONANTS_START_INDEX, LETTERS.Length)];
-                }
-                counter.SetLastSpeechSound(SpeechSound.Consonant);
+                return letter;
             }
-            return letter;
+            return LETTERS[RandomNumberGenerator.GetInt32(CONSONANTS_START_INDEX)];
         }
 
         class SpeechSoundCounter
@@ -147,31 +124,27 @@ namespace NameGeneration
             private int _count = 0;
             private SpeechSound? _lastSpeechSound = null;
 
-            public void IncreaseCount()
+            public bool Add(SpeechSound speechSound)
             {
-                _count += 1;
-            }
-
-            public void ResetCount()
-            {
-                _count = 0;
-            }
-            public int GetCount()
-            {
-                return _count;
-            }
-
-            public void SetLastSpeechSound(SpeechSound speechSound)
-            {
+                if (speechSound == _lastSpeechSound)
+                {
+                    if (_count < MAX_CONSECUTIVE_SPEECH_SOUNDS)
+                    {
+                        _count += 1;
+                        _lastSpeechSound = speechSound;
+                        return true;
+                    }
+                    _count = 1;
+                    _lastSpeechSound = speechSound == SpeechSound.Vowel ?
+                        SpeechSound.Consonant : SpeechSound.Vowel;
+                    return false;
+                }
+                _count = 1;
                 _lastSpeechSound = speechSound;
-            }
-
-            public SpeechSound? GetLastSpeechSound()
-            {
-                return _lastSpeechSound;
+                return true;
             }
         }
-        
+
         enum SpeechSound
         {
             Vowel,
