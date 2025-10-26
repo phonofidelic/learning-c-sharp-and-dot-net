@@ -128,18 +128,18 @@ namespace NameGeneration
             {
                 if (speechSound == _lastSpeechSound)
                 {
-                    if (_count < MAX_CONSECUTIVE_SPEECH_SOUNDS)
+                    /* Increment count before comparing to consecutive limit */
+                    if (++_count < MAX_CONSECUTIVE_SPEECH_SOUNDS)
                     {
-                        _count += 1;
                         _lastSpeechSound = speechSound;
                         return true;
                     }
-                    _count = 1;
+                    _count = 0;
                     _lastSpeechSound = speechSound == SpeechSound.Vowel ?
                         SpeechSound.Consonant : SpeechSound.Vowel;
                     return false;
                 }
-                _count = 1;
+                _count = 0;
                 _lastSpeechSound = speechSound;
                 return true;
             }
