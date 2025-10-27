@@ -45,12 +45,12 @@ namespace NameGeneration
 {
     class Program
     {
-        /*
-            Index 0-4: vowels
-            Index 4-end: consonants
-        */
         static readonly int MIN_NAME_LENGTH = 3;
         static readonly int MAX_NAME_LENGTH = 20;
+        /*
+            Index 0-4: vowels
+            Index 5-end: consonants
+        */
         static readonly string LETTERS = "aeioubcdfghjklmnpqrstvwxyz";
         static readonly int CONSONANTS_START_INDEX = 5;
         static readonly int MAX_CONSECUTIVE_SPEECH_SOUNDS = 2;
