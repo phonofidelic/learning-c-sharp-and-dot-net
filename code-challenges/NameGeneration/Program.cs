@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Data;
 using System.Collections.Generic;
-using System.Security.Cryptography;
 
 /*
 https://open.kattis.com/problems/namegeneration
@@ -55,6 +54,8 @@ namespace NameGeneration
         static readonly int CONSONANTS_START_INDEX = 5;
         static readonly int MAX_CONSECUTIVE_SPEECH_SOUNDS = 2;
         static readonly int MAX_NAMES_AMOUNT = 30000;
+
+        static readonly Random random = new();
         static void Main(string[] args)
         {
             string rawInput = Console.ReadLine() ?? "0";
@@ -85,7 +86,7 @@ namespace NameGeneration
 
             for (int i = 0; i < nameAmount; i++)
             {
-                int nameLength = RandomNumberGenerator.GetInt32(MIN_NAME_LENGTH, MAX_NAME_LENGTH + 1);
+                int nameLength = random.Next(MIN_NAME_LENGTH, MAX_NAME_LENGTH + 1);
                 string name = "";
                 SpeechSoundCounter counter = new();
                 
@@ -100,7 +101,8 @@ namespace NameGeneration
         }
         static char GetRandomLetter(SpeechSoundCounter counter)
         {
-            char letter = LETTERS[RandomNumberGenerator.GetInt32(LETTERS.Length)];
+            
+            char letter = LETTERS[random.Next(LETTERS.Length)];
 
             if (LETTERS[..5].Contains(letter))
             /* letter is a vowel */
@@ -109,14 +111,14 @@ namespace NameGeneration
                 {
                     return letter;
                 }
-                return LETTERS[RandomNumberGenerator.GetInt32(CONSONANTS_START_INDEX, LETTERS.Length)];
+                return LETTERS[random.Next(CONSONANTS_START_INDEX, LETTERS.Length)];
             }
             /* letter is a consonant */
             if (counter.Add(SpeechSound.Consonant))
             {
                 return letter;
             }
-            return LETTERS[RandomNumberGenerator.GetInt32(CONSONANTS_START_INDEX)];
+            return LETTERS[random.Next(CONSONANTS_START_INDEX)];
         }
 
         class SpeechSoundCounter
